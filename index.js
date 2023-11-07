@@ -16,6 +16,17 @@ require('dotenv').config();
 app.use(cors());
 app.use(express.json());
 
+const categories=[
+  {id:1, name:"SelfHelp", img:"https://i.ibb.co/CtQXv2Y/self-help1.jpg"},
+  {id:2, name:"Business", img:"https://i.ibb.co/p34QBk4/business1.jpg"},
+  {id:3, name:"Psychology", img:"https://i.ibb.co/NS7tFjz/psychology4.jpg"},
+  {id:4,  name:"Cookbooks", img:"https://i.ibb.co/cxjytsH/recepe1.jpg"},
+]
+
+app.get('/categories',(req,res)=>{
+  res.send(categories)
+ })
+
 // mongodb server actions
 
 
@@ -34,7 +45,31 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    await client.connect();
+    // creating Database
+    const database = client.db("booksDB");
+    const allBooks = database.collection("allBooks");
+
+    // post method to add book in database
+    app.post('/addbook', async(req,res)=>{
+      const book=req.body;
+      console.log(book)
+      const result = await allBooks.insertOne(book);
+      res.send(result);
+    });
+    // using get method to loading allbooks from Database send to clientside
+    app.get('/allbook', async(req,res)=>{
+      const cursor=allBooks.find()
+      const allbook= await cursor.toArray();
+      res.send(allbook);
+    })
+// using get method to load data for category book
+    app.get('/categories/:name', async(req,res)=>{
+      const categoryName=req.params.name
+      const query={category:categoryName}
+      const booksInCategory=await allBooks.find(query).toArray()
+      res.send(booksInCategory);
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
