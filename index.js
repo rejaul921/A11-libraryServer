@@ -97,7 +97,7 @@ async function run() {
     app.put('/updatebook/:_id',async(req,res)=>{
       const id=req.params._id;
       const updatebook=req.body;
-      console.log(updatebook);
+      // console.log(updatebook);
       const query={_id:new ObjectId(id)};
       const options = { upsert: true };
       const updatedBook={
@@ -115,6 +115,12 @@ async function run() {
       const result= await allBooks.updateOne(query,updatedBook,options);
       res.send(result);
 
+    })
+    // reading borrowed books and sending to client
+    app.get('/borrowed',async(req,res)=>{
+      const cursor = borrowedBooks.find();
+      const books = await cursor.toArray();
+      res.send(books);
     })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
