@@ -4,7 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const app=express();
 const port=process.env.PORT||5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // requiring env
 require('dotenv').config();
@@ -69,6 +69,52 @@ async function run() {
       const query={category:categoryName}
       const booksInCategory=await allBooks.find(query).toArray()
       res.send(booksInCategory);
+    })
+    // single data loading for book update
+    app.get('/updatebook/:_id', async(req,res)=>{
+      const id=req.params._id
+      const query={_id:new ObjectId(id)};
+      const book=await allBooks.findOne(query);
+      res.send(book);
+    })
+    // for bookdetails loading single book data from database
+    app.get('/bookdetails/:_id', async(req, res)=>{
+      const id=req.params._id
+      const query = { _id: new ObjectId(id) };
+      const book= await allBooks.findOne(query)
+      res.send(book);
+    })
+
+    // adding data to database for borrowed books
+    const borrowedBooks=database.collection("borrowedBooks");
+    app.post('/addBorrowedBook', async(req,res)=>{
+      const book=req.body;
+      console.log(book)
+      const result = await borrowedBooks.insertOne(book);
+      res.send(result);
+    });
+    // updating allBooks after borrowed a book
+    app.put('/updatebook/:_id',async(req,res)=>{
+      const id=req.params._id;
+      const updatebook=req.body;
+      console.log(updatebook);
+      const query={_id:new ObjectId(id)};
+      const options = { upsert: true };
+      const updatedBook={
+        $set:{
+          // name, photo, authorname, category, quantity, description, rating
+          name:updatebook.name,
+          photo:updatebook.photo,
+          authorname:updatebook.authorname,
+          category:updatebook.category,
+          quantity:updatebook.quantity,
+          description:updatebook.description,
+          rating:updatebook.rating
+        }
+      }
+      const result= await allBooks.updateOne(query,updatedBook,options);
+      res.send(result);
+
     })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
