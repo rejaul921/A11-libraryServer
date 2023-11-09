@@ -85,6 +85,14 @@ async function run() {
       res.send(book);
     })
 
+    // for readmore route
+    app.get('/readmore/:_id', async(req, res)=>{
+      const id=req.params._id
+      const query = { _id: new ObjectId(id) };
+      const book= await allBooks.findOne(query)
+      res.send(book);
+    })
+
     // adding data to database for borrowed books
     const borrowedBooks=database.collection("borrowedBooks");
     app.post('/addBorrowedBook', async(req,res)=>{
